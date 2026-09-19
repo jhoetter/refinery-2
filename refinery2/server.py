@@ -140,6 +140,41 @@ def quality(task: str = "topic"):
     return {"golden_n": len(golden), "sources": source_quality(labels, golden)}
 
 
+@app.get("/api/stats")
+def stats(task: str = "topic"):
+    """Distributions for the dashboard: label dist, confidence histogram, slices."""
+    cfg, slices, tasks, store = _ctx()
+    if task not in tasks:
+        raise HTTPException(400, f"unknown task {task}")
+    recs = store.list_records(limit=10000)
+    golden = store.golden_all(task)
+    agg = store.agg_all(task)
+    dist_agg: dict[str, int] = {}
+    hist = [0] * 10
+    for rid, v in agg.items():
+        dist_agg[str(v["label"])] = dist_agg.get(str(v["label"]), 0) + 1
+        hist[min(9, int(v["confidence"] * 10))] += 1
+    dist_golden: dict[str, int] = {}
+    for lab in golden.values():
+        dist_golden[str(lab)] = dist_golden.get(str(lab), 0) + 1
+    slice_n: dict[str, int] = {}
+    for r in recs:
+        for s in apply_slices(r, slices) or ["all"]:
+            slice_n[s] = slice_n.get(s, 0) + 1
+    labels = store.all_source_labels(task)
+    return {
+        "task": task,
+        "n_records": len(recs),
+        "n_golden": len(golden),
+        "coverage": round(len(golden) / max(len(recs), 1), 3),
+        "dist_agg": dist_agg,
+        "dist_golden": dist_golden,
+        "conf_hist": hist,
+        "sources": source_quality(labels, golden),
+        "slices": slice_n,
+    }
+
+
 @app.get("/api/queue")
 def queue(task: str = "topic", threshold: float = 0.65):
     _, _, _, store = _ctx()

@@ -1,3 +1,4 @@
+import "@fontsource/inter";
 import "./globals.css";
 import Nav from "./nav";
 

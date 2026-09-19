@@ -1,35 +1,77 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { DistBar, Hist, Stat } from "@/components/viz";
 
-type Project = { name: string; dataset: string; n_records: number; tasks: Record<string, unknown>; slices: unknown[] };
+type Stats = {
+  task: string; n_records: number; n_golden: number; coverage: number;
+  dist_agg: Record<string, number>; dist_golden: Record<string, number>;
+  conf_hist: number[]; sources: Record<string, { accuracy: number | null; coverage: number }>;
+  slices: Record<string, number>;
+};
 
 export default function Overview() {
-  const [p, setP] = useState<Project | null>(null);
-  const [models, setModels] = useState<{ name: string; kind: string }[]>([]);
+  const [tasks, setTasks] = useState<string[]>(["topic"]);
+  const [task, setTask] = useState("topic");
+  const [s, setS] = useState<Stats | null>(null);
+  const [queueN, setQueueN] = useState(0);
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    api<Project>("/api/project").then(setP).catch((e) => setErr(String(e)));
-    api<{ models: { name: string; kind: string }[] }>("/api/models").then((m) => setModels(m.models)).catch(() => {});
+    api<{ tasks: Record<string, unknown> }>("/api/project")
+      .then((p) => { setTasks(Object.keys(p.tasks)); })
+      .catch((e) => setErr(String(e)));
   }, []);
+  useEffect(() => {
+    api<Stats>(`/api/stats?task=${task}`).then(setS).catch((e) => setErr(String(e)));
+    api<{ n: number }>(`/api/queue?task=${task}`).then((q) => setQueueN(q.n)).catch(() => {});
+  }, [task]);
 
-  if (err) return <p>Backend nicht erreichbar ({err}). Läuft es auf :8000?</p>;
-  if (!p) return <p className="muted">loading…</p>;
+  if (err) return <p>Backend nicht erreichbar ({err}). Läuft die API auf :8000?</p>;
+  if (!s) return <p className="muted">loading…</p>;
   return (
     <div>
-      <h2>{p.name} <span className="muted">· {p.dataset}</span></h2>
-      <div className="card">{p.n_records} records · {Object.keys(p.tasks).length} tasks · {models.length} registered models</div>
-      <h3>tasks</h3>
-      {Object.entries(p.tasks).map(([k, t]) => (
-        <div className="card" key={k}><b>{k}</b> <span className="muted">{(t as { type: string }).type}</span></div>
-      ))}
-      <h3>models</h3>
-      {models.length === 0 && <p className="muted">none yet – train a student or register an API teacher under /models</p>}
-      {models.map((m) => <div className="card" key={m.name}><b>{m.name}</b> <span className="pill">{m.kind}</span></div>)}
-      <h3>slices</h3>
-      <p className="muted">{p.slices.map((s) => (s as { name: string }).name).join(", ") || "–"}</p>
-      <p className="muted">Label flow: templates → teacher labels → review disagreements → train student → benchmark → /api/predict.</p>
+      <div className="row">
+        <h2 style={{ margin: 0 }}>overview</h2>
+        <select value={task} onChange={(e) => setTask(e.target.value)}>{tasks.map((t) => <option key={t}>{t}</option>)}</select>
+      </div>
+      <div className="grid4">
+        <Stat v={String(s.n_records)} k="records" />
+        <Stat v={`${Math.round(100 * s.coverage)}%`} k="golden coverage" />
+        <Stat v={String(queueN)} k="need review" />
+        <Stat v={String(Object.keys(s.sources).length)} k="sources" />
+      </div>
+      <div className="grid2">
+        <div className="card">
+          <h4>label distribution · consensus ({s.n_records})</h4>
+          <DistBar dist={s.dist_agg} total={s.n_records} />
+        </div>
+        <div className="card">
+          <h4>label distribution · golden ({s.n_golden})</h4>
+          {s.n_golden ? <DistBar dist={s.dist_golden} total={s.n_golden} /> : <p className="muted">no golden labels yet – label in the review queue</p>}
+        </div>
+      </div>
+      <div className="grid2">
+        <div className="card">
+          <h4>confidence histogram</h4>
+          <Hist buckets={s.conf_hist} />
+        </div>
+        <div className="card">
+          <h4>slices</h4>
+          {Object.entries(s.slices).map(([k, v]) => (
+            <div className="distrow" key={k}><span>{k}</span>
+              <div className="bar"><div style={{ width: `${Math.round(100 * v / s.n_records)}%` }} /></div>
+              <span className="n">{v}</span></div>
+          ))}
+        </div>
+      </div>
+      <h3>source quality vs golden</h3>
+      <table className="grid">
+        <thead><tr><th>source</th><th>accuracy</th><th>coverage</th></tr></thead>
+        <tbody>{Object.entries(s.sources).map(([k, v]) => (
+          <tr key={k}><td className="mono">{k}</td><td>{v.accuracy ?? "–"}</td><td>{v.coverage}</td></tr>
+        ))}</tbody>
+      </table>
     </div>
   );
 }
