@@ -18,7 +18,7 @@ python3 -m venv --system-site-packages .venv && source .venv/bin/activate
 python projects/demo_agnews/fetch_data.py 400
 python scripts/sync_demo.py
 PORT=8000 PYTHONPATH=. python -m uvicorn refinery2.server:app --host 127.0.0.1 --port 8000
-cd web && npm install && NEXT_PUBLIC_API_URL=http://localhost:8000 npm run dev -- -p 3000
+cd web && npm install && NEXT_PUBLIC_API_URL=http://127.0.0.1:8000 npm run dev -- -p 3000
 ```
 
 (Offline note: `fetch_data.py` falls back to a synthetic sample when

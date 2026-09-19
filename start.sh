@@ -14,5 +14,5 @@ export PORT=8000
 echo $! > /tmp/refinery-api.pid
 echo "api on :8000 (pid $(cat /tmp/refinery-api.pid))"
 cd web
-export NEXT_PUBLIC_API_URL=http://localhost:8000
+export NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
 exec npm run dev -- -p 3000
