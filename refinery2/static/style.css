@@ -6,7 +6,22 @@ button,select,input{background:#22262f;color:#e6e6e6;border:1px solid #3a4050;bo
 button{cursor:pointer}button:hover{background:#2c323e}
 main{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;padding:12px}
 .col{min-width:0}.row{display:flex;gap:8px;margin-bottom:8px}#q{flex:1}
-#list{display:flex;flex-direction:column;gap:8px;max-height:75vh;overflow:auto}
+nav.tabs{display:flex;gap:4px}
+nav.tabs button.on{background:#31435c;border-color:#6ea8fe}
+.hidden{display:none!important}
+#toast{position:fixed;top:10px;right:12px;padding:8px 14px;border-radius:6px;font-size:12px;z-index:10}
+#toast.err{background:#5a2323;border:1px solid #b05656}
+#toast.ok{background:#1d3a2a;border:1px solid #4caf7d}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tab{grid-column:1/-1}
+#list,#qlist{display:flex;flex-direction:column;gap:8px;max-height:72vh;overflow:auto}
+#detail,#qdetail{max-height:72vh;overflow:auto;background:#171a21;border:1px solid #2a2e38;border-radius:8px;padding:10px;font-size:12px}
+.editor{background:#0f1115;border:1px solid #3a4050;border-radius:8px;padding:10px;margin:8px 0}
+.editor h4{margin:0 0 8px;font-size:12px}
+.fulltext{line-height:1.5}
+table.votes{border-collapse:collapse;font-size:12px;margin-top:8px}
+table.votes td,table.votes th{border:1px solid #2a2e38;padding:3px 8px;text-align:left}
+.tokp{line-height:1.9}
 .rec{background:#171a21;border:1px solid #2a2e38;border-radius:8px;padding:8px;cursor:pointer;font-size:12px}
 .rec.sel{border-color:#6ea8fe}.rec .t{color:#cfd4dc;margin-bottom:6px}
 .pill{display:inline-block;border:1px solid #3a4050;border-radius:20px;padding:1px 8px;margin:1px 4px 1px 0;font-size:11px}

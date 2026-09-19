@@ -10,30 +10,44 @@
 <header>
   <div>
     <h1>refinery-2 <span id="proj"></span></h1>
-    <p class="sub">slim loop: as-code tasks &middot; multi-source labels &middot; review disagreements &middot; distill</p>
+    <p class="sub" id="stats">…</p>
   </div>
-  <div class="actions">
-    <button id="btn-run">run sources</button>
-    <button id="btn-distill">distill student</button>
-  </div>
+  <nav class="tabs">
+    <button data-tab="browse" class="on">browse</button>
+    <button data-tab="review" id="tab-review">review <span id="qcount"></span></button>
+    <button data-tab="sources">sources</button>
+    <button data-tab="distill">distill</button>
+  </nav>
 </header>
+<div id="toast" class="hidden"></div>
 <main>
-  <section class="col">
+  <section id="tab-browse" class="tab">
     <div class="row">
       <select id="task"></select>
-      <input id="q" placeholder="search…">
-      <select id="view">
-        <option value="all">all</option>
-        <option value="queue">needs review</option>
-      </select>
+      <input id="q" placeholder="search text…">
+      <button id="btn-run">run sources</button>
     </div>
-    <div id="list"></div>
+    <div class="split">
+      <div id="list"></div>
+      <div id="detail"><p class="muted">Select a record on the left to label it. Keys 1–4 label classification.</p></div>
+    </div>
   </section>
-  <section class="col">
-    <div id="detail"><p class="muted">select a record…</p></div>
-    <h3>quality vs golden</h3>
+  <section id="tab-review" class="tab hidden">
+    <p class="muted">Records where sources disagree or confidence is low. Click to label as golden.</p>
+    <div class="split">
+      <div id="qlist"></div>
+      <div id="qdetail"><p class="muted">Select a record…</p></div>
+    </div>
+  </section>
+  <section id="tab-sources" class="tab hidden">
+    <h3>source quality vs golden</h3>
     <pre id="quality" class="card">–</pre>
-    <h3>distillation</h3>
+  </section>
+  <section id="tab-distill" class="tab hidden">
+    <div class="row">
+      <label>min conf <input id="minconf" value="0.8" size="4"></label>
+      <button id="btn-distill">train student</button>
+    </div>
     <pre id="distill" class="card">–</pre>
   </section>
 </main>

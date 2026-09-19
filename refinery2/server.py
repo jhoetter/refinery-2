@@ -9,6 +9,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+import os
+
 from .aggregate import (
     aggregate_classification,
     disagreement_queue,
@@ -20,7 +22,12 @@ from .sources import run_sources_for_record
 from .store import Store
 from .tasks import load_tasks, validate_label
 
-PROJECT_DIR = Path(__file__).resolve().parent.parent / "projects" / "demo_agnews"
+PROJECT_DIR = Path(
+    os.environ.get(
+        "REFINERY_PROJECT",
+        Path(__file__).resolve().parent.parent / "projects" / "demo_agnews",
+    )
+)
 
 app = FastAPI(title="refinery-2")
 
