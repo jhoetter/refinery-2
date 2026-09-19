@@ -1,0 +1,8 @@
+name: text-classification
+description: Single-label topic/intent classification with teacher + student loop
+tasks:
+  - name: topic
+    type: classification
+    description: What is this text about?
+    labels: [World, Sports, Business, Sci/Tech]
+    model: api-teacher

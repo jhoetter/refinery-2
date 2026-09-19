@@ -149,3 +149,10 @@ __pycache__/
 *.db
 projects/*/data/*
 !projects/*/data/.gitkeep
+
+# Next.js
+web/node_modules/
+web/.next/
+web/out/
+
+web/next-env.d.ts

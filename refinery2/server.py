@@ -206,7 +206,172 @@ def distill(body: DistillIn):
     }
 
 
-# ---- static UI ----
+# ---- templates: gallery + vibecoded creation (all as-code) ----
+@app.get("/api/templates")
+def templates_list():
+    from .templates import list_templates
+
+    return {"templates": list_templates()}
+
+
+@app.get("/api/templates/{name}")
+def template_get(name: str):
+    from .templates import get_template
+
+    try:
+        return get_template(name)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+
+
+class TaskFromTemplate(BaseModel):
+    template: str
+    prefix: str = ""
+
+
+@app.post("/api/tasks/from-template")
+def task_from_template(body: TaskFromTemplate):
+    cfg, _, _, _ = _ctx()
+    from .templates import apply_template
+
+    try:
+        created = apply_template(PROJECT_DIR, cfg.tasks_dir, body.template, body.prefix)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+    return {"ok": True, "tasks": created}
+
+
+@app.post("/api/tasks")
+def task_create(body: dict):
+    """Vibecode path: agent-generated TaskDef JSON becomes a versioned YAML."""
+    cfg, _, _, _ = _ctx()
+    from .templates import create_task_inline
+
+    try:
+        name = create_task_inline(PROJECT_DIR, cfg.tasks_dir, body)
+    except Exception as e:
+        raise HTTPException(400, f"invalid task definition: {e}")
+    return {"ok": True, "task": name}
+
+
+# ---- models: registry, teachers, students, benchmark, serve ----
+@app.get("/api/models")
+def models_list():
+    from .models import load_registry
+
+    return {"models": load_registry(PROJECT_DIR)}
+
+
+class ApiModelIn(BaseModel):
+    name: str
+    task: str
+    base_url: str
+    model: str
+    api_key_env: str = "LLM_API_KEY"
+
+
+@app.post("/api/models/api")
+def models_register_api(body: ApiModelIn):
+    from .models import register_api_model
+
+    return register_api_model(
+        PROJECT_DIR, body.name, body.task, body.base_url, body.model, body.api_key_env
+    )
+
+
+class TrainIn(BaseModel):
+    task: str = "topic"
+    name: str = "student-v1"
+    min_conf: float = 0.8
+
+
+@app.post("/api/models/train")
+def models_train(body: TrainIn):
+    from .models import train_local_model
+
+    _, _, tasks, store = _ctx()
+    if body.task not in tasks:
+        raise HTTPException(400, f"unknown task {body.task}")
+    try:
+        entry = train_local_model(PROJECT_DIR, store, tasks[body.task], body.name, body.min_conf)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return entry
+
+
+class BenchIn(BaseModel):
+    task: str = "topic"
+    models: list[str] | None = None
+
+
+@app.post("/api/models/benchmark")
+def models_benchmark(body: BenchIn):
+    from .models import benchmark
+
+    _, _, tasks, store = _ctx()
+    if body.task not in tasks:
+        raise HTTPException(400, f"unknown task {body.task}")
+    try:
+        return benchmark(PROJECT_DIR, store, tasks[body.task], body.models)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+class PredictIn(BaseModel):
+    model: str
+    task: str
+    text: str
+
+
+@app.post("/api/predict")
+def predict(body: PredictIn):
+    from .models import predict as _predict
+
+    _, _, tasks, _ = _ctx()
+    if body.task not in tasks:
+        raise HTTPException(400, f"unknown task {body.task}")
+    try:
+        return _predict(PROJECT_DIR, body.model, tasks[body.task], body.text)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+    except (RuntimeError, ValueError) as e:
+        raise HTTPException(502, str(e))
+
+
+class TeacherRunIn(BaseModel):
+    model: str
+    task: str = "topic"
+    limit: int = 200
+
+
+@app.post("/api/run-teacher")
+def run_teacher(body: TeacherRunIn):
+    """Label records with a registered API teacher (source name = model name)."""
+    from .models import api_predict, get_model
+
+    _, _, tasks, store = _ctx()
+    if body.task not in tasks:
+        raise HTTPException(400, f"unknown task {body.task}")
+    try:
+        entry = get_model(PROJECT_DIR, body.model)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+    if entry["kind"] != "api":
+        raise HTTPException(400, "run-teacher needs an api model; local models use /api/predict")
+    recs = store.list_records(limit=body.limit)
+    n, errors = 0, 0
+    for r in recs:
+        try:
+            label, conf, _ = api_predict(entry, tasks[body.task], r["text"])
+            store.add_source_label(r["id"], body.task, body.model, label, conf)
+            n += 1
+        except RuntimeError:
+            errors += 1
+    store.commit()
+    return {"ok": True, "labeled": n, "errors": errors}
+
+
+# ---- static UI (legacy fallback; primary UI is Next.js on :3000) ----
 STATIC = Path(__file__).resolve().parent / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
 

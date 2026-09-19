@@ -1,0 +1,25 @@
+name: support-ticket-bundle
+description: "Complex bundle on the same records: intent + priority + product spans + summary"
+tasks:
+  - name: intent
+    type: classification
+    description: Customer intent of the ticket
+    labels: [bug, feature-request, billing, howto, churn]
+    model: api-teacher
+  - name: priority
+    type: classification
+    description: Urgency of the ticket
+    labels: [low, medium, high, critical]
+    model: api-teacher
+  - name: product-mentions
+    type: spans
+    description: Product, version and error-code mentions
+    entities: [PRODUCT, VERSION, ERROR, ORG]
+    model: heuristic
+  - name: ticket-brief
+    type: extraction
+    description: One-line summary plus requested action
+    fields:
+      - {name: summary, prompt: "one-sentence summary of the issue"}
+      - {name: action, prompt: "requested action or next step"}
+    model: api-teacher

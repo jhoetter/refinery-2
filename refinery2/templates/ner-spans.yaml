@@ -1,0 +1,8 @@
+name: ner-spans
+description: Named-entity spans on running text (ORG/LOC/MONEY/DATE)
+tasks:
+  - name: entities
+    type: spans
+    description: Mark entity mentions in the text
+    entities: [ORG, LOC, MONEY, DATE]
+    model: heuristic

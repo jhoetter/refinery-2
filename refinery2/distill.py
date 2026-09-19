@@ -63,6 +63,23 @@ class NBStudent:
     def predict(self, texts: list[str]) -> list[str]:
         return [self.predict_one(t) for t in texts]
 
+    def proba_one(self, text: str) -> dict[str, float]:
+        import math as _math
+
+        feats = featurize(text)
+        scores = {}
+        for c in self.classes:
+            lp = self.log_prior[c]
+            probs = self.log_prob[c]
+            for w, n in feats.items():
+                if w in probs:
+                    lp += n * probs[w]
+            scores[c] = lp
+        mx = max(scores.values())
+        exps = {c: _math.exp(s - mx) for c, s in scores.items()}
+        tot = sum(exps.values())
+        return {c: round(v / tot, 3) for c, v in exps.items()}
+
 
 def train_classifier(texts: list[str], labels: list[str]) -> NBStudent:
     return NBStudent().fit(texts, labels)

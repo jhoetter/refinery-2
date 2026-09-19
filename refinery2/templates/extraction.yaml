@@ -1,0 +1,10 @@
+name: extraction
+description: Structured extraction (summary + slots) from documents
+tasks:
+  - name: brief
+    type: extraction
+    description: Short summary plus key slots
+    fields:
+      - {name: summary, prompt: "one-sentence summary"}
+      - {name: orgs, prompt: "organizations mentioned, comma separated"}
+    model: api-teacher
