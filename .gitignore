@@ -156,3 +156,6 @@ web/.next/
 web/out/
 
 web/next-env.d.ts
+
+# trained artifacts (registry yaml stays versioned)
+*.pkl
