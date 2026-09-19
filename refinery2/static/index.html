@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>refinery-2 — label + distill</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div>
+    <h1>refinery-2 <span id="proj"></span></h1>
+    <p class="sub">slim loop: as-code tasks &middot; multi-source labels &middot; review disagreements &middot; distill</p>
+  </div>
+  <div class="actions">
+    <button id="btn-run">run sources</button>
+    <button id="btn-distill">distill student</button>
+  </div>
+</header>
+<main>
+  <section class="col">
+    <div class="row">
+      <select id="task"></select>
+      <input id="q" placeholder="search…">
+      <select id="view">
+        <option value="all">all</option>
+        <option value="queue">needs review</option>
+      </select>
+    </div>
+    <div id="list"></div>
+  </section>
+  <section class="col">
+    <div id="detail"><p class="muted">select a record…</p></div>
+    <h3>quality vs golden</h3>
+    <pre id="quality" class="card">–</pre>
+    <h3>distillation</h3>
+    <pre id="distill" class="card">–</pre>
+  </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# slices for "where does it fail" analysis — all git-versioned
+- name: short
+  match: {len_lt: 300}
+- name: long
+  match: {len_gte: 300}
+- name: sports_mention
+  match: {text_contains: "game"}
+- name: money_mention
+  match: {text_contains: "$"}
+- name: politics_mention
+  match: {text_contains: "minister"}

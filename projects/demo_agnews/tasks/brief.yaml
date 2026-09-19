@@ -1,0 +1,7 @@
+name: brief
+type: extraction
+description: Short summary + orgs mentioned
+fields:
+  - {name: summary, prompt: "one-sentence summary"}
+  - {name: orgs, prompt: "organizations mentioned, comma separated"}
+model: mock-llm

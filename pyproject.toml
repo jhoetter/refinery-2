@@ -1,0 +1,21 @@
+[project]
+name = "refinery-2"
+version = "0.1.0"
+description = "Slim LLM-first data labeling + distillation loop (refinery rethink)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "pydantic>=2.0",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

@@ -1,0 +1,5 @@
+name: topic
+type: classification
+description: AG News topic of the article
+labels: [World, Sports, Business, Sci/Tech]
+model: mock-llm

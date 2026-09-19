@@ -1,0 +1,5 @@
+name: entities
+type: spans
+description: NER-style spans on the same news texts
+entities: [ORG, LOC, MONEY, DATE]
+model: heuristic

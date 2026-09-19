@@ -1,0 +1,6 @@
+name: demo-agnews
+dataset: agnews-subset
+records_path: data/records.jsonl
+golden_path: golden/golden.jsonl
+tasks_dir: tasks
+slices_path: slices.yaml
