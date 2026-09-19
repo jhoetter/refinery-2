@@ -42,12 +42,12 @@ export default function Templates() {
         <div className="card" key={t.template}>
           <b>{t.name}</b> <span className="muted">{t.description}</span>
           <div>{t.tasks.map((x) => <span className="pill" key={x}>{x}</span>)}</div>
-          <div className="btns"><button onClick={() => apply(t.template)}>use template</button></div>
+          <div className="btns"><button className="primary" onClick={() => apply(t.template)}>use template</button></div>
         </div>
       ))}
       <h3>vibecode a task (paste TaskDef JSON – or let an agent do it via MCP)</h3>
       <textarea className="txt" rows={10} value={vibe} onChange={(e) => setVibe(e.target.value)} />
-      <div className="btns"><button onClick={vibecode}>create task</button></div>
+      <div className="btns"><button className="primary" onClick={vibecode}>create task</button></div>
       {msg && <p className="muted">{msg}</p>}
     </div>
   );

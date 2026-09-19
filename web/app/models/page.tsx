@@ -70,7 +70,7 @@ export default function Models() {
       <h3>train student (distill)</h3>
       <div className="row">
         <input value={trainName} onChange={(e) => setTrainName(e.target.value)} />
-        <button onClick={train}>train on confident consensus + golden</button>
+        <button className="primary" onClick={train}>train on confident consensus + golden</button>
         <button onClick={benchmark}>benchmark all</button>
       </div>
 
@@ -89,7 +89,7 @@ export default function Models() {
           <option value="">auto</option>{models.map((m) => <option key={m.name} value={m.name}>{m.name}</option>)}
         </select>
         <input value={pv.text} onChange={(e) => setPv({ ...pv, text: e.target.value })} placeholder="text…" size={50} />
-        <button onClick={predict}>predict</button>
+        <button className="primary" onClick={predict}>predict</button>
       </div>
       {pvOut && <pre className="card">{pvOut}</pre>}
       {msg && <p className="muted">{msg}</p>}

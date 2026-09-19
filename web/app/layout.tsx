@@ -1,4 +1,5 @@
 import "./globals.css";
+import Nav from "./nav";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,15 +10,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <h1>refinery-2</h1>
             <p className="sub">label with teachers · distill to students · serve via API</p>
           </div>
-          <nav>
-            <a href="/">overview</a>
-            <a href="/review">review</a>
-            <a href="/templates">templates</a>
-            <a href="/models">models</a>
-          </nav>
+          <Nav />
         </header>
         <main>{children}</main>
-        <div id="toast" style={{ display: "none" }} />
       </body>
     </html>
   );

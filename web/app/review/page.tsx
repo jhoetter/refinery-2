@@ -57,6 +57,7 @@ export default function Review() {
         <div>
           {rows.map((r) => (
             <div key={r.id} className="rec" onClick={() => open(r.id)}>
+              <div className="id">{r.id}</div>
               <div className="t">{r.text.slice(0, 180)}…</div>
               <div>{r.agg && <span className="pill">agg {shortLabel(r.agg.label)}</span>}{r.golden ? <span className="pill gold">gold {shortLabel(r.golden)}</span> : <span className="pill low">unlabeled</span>}</div>
             </div>
@@ -110,7 +111,7 @@ function Editor({ task, text, golden, onSave }: { task: TaskDef; text: string; g
       <div>
         <div className="row">
           <select value={ent} onChange={(e) => setEnt(e.target.value)}>{(task.entities ?? []).map((e) => <option key={e}>{e}</option>)}</select>
-          <button onClick={save}>save spans</button>
+          <button className="primary" onClick={save}>save spans</button>
           <button onClick={() => setSel([])}>clear</button>
         </div>
         <p style={{ lineHeight: 1.9 }}>{parts.map((w, i) => <span key={i} className={sel.includes(i) ? "tok ent" : "tok"} onClick={() => toggle(i)}>{w}</span>)}</p>
@@ -122,7 +123,7 @@ function Editor({ task, text, golden, onSave }: { task: TaskDef; text: string; g
       {(task.fields ?? []).map((f) => (
         <label key={f.name}>{f.name}<input className="txt" value={fields[f.name] ?? ""} onChange={(e) => setFields({ ...fields, [f.name]: e.target.value })} /></label>
       ))}
-      <div className="btns"><button onClick={() => onSave(fields)}>save</button></div>
+      <div className="btns"><button className="primary" onClick={() => onSave(fields)}>save</button></div>
     </div>
   );
 }
