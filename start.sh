@@ -14,5 +14,6 @@ export PORT=8000
 echo $! > /tmp/refinery-api.pid
 echo "api on :8000 (pid $(cat /tmp/refinery-api.pid))"
 cd web
-export NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+# same-origin: Next.js proxies /api/* to the backend (no direct browser->API traffic)
+unset NEXT_PUBLIC_API_URL
 exec npm run dev -- -p 3000

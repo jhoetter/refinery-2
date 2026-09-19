@@ -1,7 +1,16 @@
-export const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const API = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(`${API}${path}`, init);
+export async function api<T>(path: string, init?: RequestInit, timeoutMs = 15000): Promise<T> {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  let r: Response;
+  try {
+    r = await fetch(`${API}${path}`, { ...init, signal: ctl.signal });
+  } catch (e) {
+    throw new Error(`API unreachable (${API || "same origin"}${path}): ${e}`);
+  } finally {
+    clearTimeout(t);
+  }
   if (!r.ok) throw new Error(await r.text());
   return r.json() as Promise<T>;
 }
