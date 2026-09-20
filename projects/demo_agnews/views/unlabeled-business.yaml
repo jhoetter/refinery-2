@@ -1,0 +1,7 @@
+description: Business consensus without golden label yet
+logic: and
+groups:
+  - logic: and
+    conditions:
+      - {field: agg_label, task: topic, op: eq, value: Business}
+      - {field: golden, task: topic, op: missing}

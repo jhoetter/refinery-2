@@ -19,6 +19,15 @@ export function DistBar({ dist, total }: { dist: Record<string, number>; total: 
   );
 }
 
+export function PageHeader({ title, desc, actions }: { title: string; desc: string; actions?: React.ReactNode }) {
+  return (
+    <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
+      <div><h2 style={{ margin: 0 }}>{title}</h2><p className="muted" style={{ margin: "2px 0 0" }}>{desc}</p></div>
+      <div className="row" style={{ margin: 0 }}>{actions}</div>
+    </div>
+  );
+}
+
 export function Hist({ buckets }: { buckets: number[] }) {
   const max = Math.max(1, ...buckets);
   return (

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { PageHeader } from "@/components/viz";
 
 type Tpl = { template: string; name: string; description: string; tasks: string[] };
 
@@ -36,7 +37,7 @@ export default function Templates() {
 
   return (
     <div>
-      <h2>templates</h2>
+      <PageHeader title="templates" desc="Start from the gallery or vibecode a task – everything lands as versioned YAML." actions={null} />
       <div className="row"><label>prefix <input value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="optional" /></label></div>
       {tpls.map((t) => (
         <div className="card" key={t.template}>

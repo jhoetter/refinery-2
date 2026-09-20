@@ -174,6 +174,79 @@ def stats(task: str = "topic"):
     }
 
 
+# ---- views: saved complex filters (as-code YAML) ----
+@app.get("/api/views")
+def views_list():
+    from .views import list_views
+
+    return {"views": list_views(PROJECT_DIR)}
+
+
+@app.post("/api/views")
+def view_save(body: dict):
+    from .views import save_view
+
+    try:
+        name = save_view(PROJECT_DIR, body)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"ok": True, "view": name}
+
+
+@app.delete("/api/views/{name}")
+def view_delete(name: str):
+    from .views import delete_view
+
+    try:
+        delete_view(PROJECT_DIR, name)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+    return {"ok": True}
+
+
+class ViewRunIn(BaseModel):
+    view: str | None = None      # saved view name
+    definition: dict | None = None  # inline view (preview before saving)
+    task: str = "topic"
+    limit: int = 200
+
+
+@app.post("/api/views/run")
+def view_run(body: ViewRunIn):
+    from .views import eval_view, get_view
+
+    _, slices, _, store = _ctx()
+    if body.view:
+        try:
+            view = get_view(PROJECT_DIR, body.view)
+        except KeyError as e:
+            raise HTTPException(404, str(e))
+    elif body.definition:
+        view = body.definition
+    else:
+        raise HTTPException(400, "pass view or definition")
+    try:
+        ids = eval_view(store, slices, view)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    out = []
+    for rid in ids[: body.limit]:
+        r = store.get_record(rid)
+        votes = store.source_labels_for(rid, body.task)
+        agg = store.get_agg(rid, body.task)
+        out.append(
+            {
+                "id": r["id"],
+                "text": r["text"][:600],
+                "meta": r["meta"],
+                "votes": votes,
+                "agg": agg,
+                "golden": store.get_golden(rid, body.task),
+            }
+        )
+    return {"records": out, "n": len(ids)}
+
+
 @app.get("/api/queue")
 def queue(task: str = "topic", threshold: float = 0.65):
     _, _, _, store = _ctx()

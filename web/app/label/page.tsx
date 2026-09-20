@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, TaskDef } from "@/lib/api";
 import { AllTasks } from "@/components/task_sections";
+import { PageHeader } from "@/components/viz";
 
 export default function Label() {
   const [tasks, setTasks] = useState<Record<string, TaskDef>>({});
@@ -38,11 +39,11 @@ export default function Label() {
   const cur = queue[Math.min(idx, queue.length - 1)];
   return (
     <div>
-      <div className="row">
-        <h2 style={{ margin: 0 }}>label</h2>
-        <label className="flt">queue <select value={task} onChange={(e) => setTask(e.target.value)}>{Object.keys(tasks).map((k) => <option key={k}>{k}</option>)}</select></label>
-        <span className="muted">{queue.length ? `${idx + 1} / ${queue.length} in queue` : "queue empty 🎉"} · {done} golden ({task})</span>
-      </div>
+      <PageHeader title="label" desc="Keyboard-first review. All task UIs at once – digits label, arrows navigate."
+        actions={<>
+          <label className="flt">queue <select value={task} onChange={(e) => setTask(e.target.value)}>{Object.keys(tasks).map((k) => <option key={k}>{k}</option>)}</select></label>
+          <span className="muted">{queue.length ? `${idx + 1} / ${queue.length}` : "empty 🎉"} · {done} golden</span>
+        </>} />
       <div className="progress" style={{ marginBottom: 14 }}><div style={{ width: `${queue.length ? Math.round(100 * idx / queue.length) : 100}%` }} /></div>
       {msg && <p className="muted">{msg}</p>}
       {!queue.length && <p className="muted">Nothing to review – teachers agree everywhere.</p>}

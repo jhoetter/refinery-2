@@ -1,0 +1,9 @@
+description: Records where teachers disagree or confidence is low
+logic: or
+groups:
+  - logic: and
+    conditions:
+      - {field: disagreement, task: topic, op: true}
+  - logic: and
+    conditions:
+      - {field: confidence, task: topic, op: lt, value: 0.65}

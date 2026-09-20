@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { PageHeader } from "@/components/viz";
 
 type Entry = { name: string; kind: string; task: string; params: Record<string, unknown>; metrics: Record<string, unknown> };
 
@@ -53,7 +54,7 @@ export default function Models() {
 
   return (
     <div>
-      <h2>models <span className="muted">teachers (API) vs students (local, fast, cheap)</span></h2>
+      <PageHeader title="models" desc="Teachers (API) vs students (local, fast, cheap). Train, benchmark, serve." actions={null} />
       {models.map((m) => (
         <div className="card" key={m.name}><b>{m.name}</b> <span className="pill">{m.kind}</span> <span className="muted">task {m.task} · {JSON.stringify(m.metrics)}</span></div>
       ))}

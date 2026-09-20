@@ -1,0 +1,11 @@
+description: Long money-related texts outside golden
+logic: and
+groups:
+  - logic: and
+    conditions:
+      - {field: slice, task: topic, op: eq, value: money_mention}
+      - {field: slice, task: topic, op: eq, value: long}
+  - logic: and
+    negate: true
+    conditions:
+      - {field: golden, task: topic, op: present}
