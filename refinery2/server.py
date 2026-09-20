@@ -478,6 +478,48 @@ def run_teacher(body: TeacherRunIn):
     return {"ok": True, "labeled": n, "errors": errors}
 
 
+class JevRunIn(BaseModel):
+    task: str = "topic"
+    limit: int = 200
+
+
+@app.post("/api/run-jev")
+def run_jev(body: JevRunIn):
+    """Label records with live Jev (source name 'jev'). Needs JEV_API_KEY."""
+    from .jev import jev_choice
+    from .models import get_model as _get
+
+    _, _, tasks, store = _ctx()
+    if body.task not in tasks:
+        raise HTTPException(400, f"unknown task {body.task}")
+    task = tasks[body.task]
+    if task.type != "classification":
+        raise HTTPException(400, "live jev currently supports classification tasks")
+    try:
+        entry = _get(PROJECT_DIR, "jev")
+    except KeyError:
+        entry = {"name": "jev", "kind": "jev", "params": {"model": "jev-latest"}}
+    options = {lab: lab for lab in task.labels}
+    recs = store.list_records(limit=body.limit)
+    n, errors = 0, 0
+    for r in recs:
+        try:
+            label, conf, _, _ = jev_choice(
+                r["text"], task.description or task.name, options,
+            )
+            store.add_source_label(r["id"], body.task, "jev", validate_label(task, label), conf)
+            n += 1
+        except RuntimeError:
+            errors += 1
+    for r in recs:
+        votes = store.source_labels_for(r["id"], body.task)
+        if votes:
+            label, conf = aggregate_any(votes)
+            store.set_agg(r["id"], body.task, label, conf)
+    store.commit()
+    return {"ok": True, "labeled": n, "errors": errors}
+
+
 # ---- static UI (legacy fallback; primary UI is Next.js on :3000) ----
 STATIC = Path(__file__).resolve().parent / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")

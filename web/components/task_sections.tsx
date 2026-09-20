@@ -51,7 +51,7 @@ export function AllTasks({ id, tasks, onSaved }: {
       <p className="labeltext">{text}</p>
       {names.map((t, i) => (
         <details key={t} open={i === 0} className="card" style={{ margin: "8px 0" }}>
-          <summary style={{ cursor: "pointer", fontWeight: 600 }}>
+          <summary className="tasksum">
             {t} <span className="muted">· {tasks[t].type}</span>{" "}
             {data[t]?.agg && <span className="pill acc">{shortLabel(data[t].agg!.label)}</span>}
             {data[t]?.golden !== undefined && data[t]?.golden !== null

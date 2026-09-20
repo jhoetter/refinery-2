@@ -9,6 +9,7 @@ if [ ! -f projects/demo_agnews/data/records.jsonl ]; then
   .venv/bin/python projects/demo_agnews/fetch_data.py 400
 fi
 export PYTHONPATH=.
+[ -f .env ] && set -a && source .env && set +a
 export PORT=8000
 .venv/bin/python -m uvicorn refinery2.server:app --host 127.0.0.1 --port 8000 &>/tmp/refinery-api.log &
 echo $! > /tmp/refinery-api.pid

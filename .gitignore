@@ -159,3 +159,6 @@ web/next-env.d.ts
 
 # trained artifacts (registry yaml stays versioned)
 *.pkl
+
+# secrets (never commit)
+.env

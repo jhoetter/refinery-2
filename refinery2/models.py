@@ -178,10 +178,28 @@ def local_predict(project_dir: Path, entry: dict, text: str) -> tuple[object, fl
     return label, round(max(probs.values()), 3), round(latency, 1)
 
 
+def jev_predict(entry: dict, task: TaskDef, text: str) -> tuple[object, float, float]:
+    """Live Jev teacher. Currently supports classification tasks."""
+    if task.type != "classification":
+        raise ValueError("jev runner currently supports classification tasks")
+    from .jev import jev_choice
+
+    options = {lab: lab for lab in task.labels}
+    label, conf, _probs, latency = jev_choice(
+        text,
+        task.description or f"Classify into one of: {task.labels}",
+        options,
+        model=entry.get("params", {}).get("model", "jev-latest"),
+    )
+    return validate_label(task, label), conf, latency
+
+
 def predict(project_dir: Path, model_name: str, task: TaskDef, text: str) -> dict:
     entry = get_model(project_dir, model_name)
     if entry["kind"] == "api":
         label, conf, latency = api_predict(entry, task, text)
+    elif entry["kind"] == "jev":
+        label, conf, latency = jev_predict(entry, task, text)
     else:
         label, conf, latency = local_predict(project_dir, entry, text)
     return {"model": model_name, "label": label, "confidence": conf, "latency_ms": latency}
@@ -228,6 +246,8 @@ def benchmark(
             try:
                 if e["kind"] == "api":
                     lab, _, lat = api_predict(e, task, t)
+                elif e["kind"] == "jev":
+                    lab, _, lat = jev_predict(e, task, t)
                 else:
                     lab, _, lat = local_predict(project_dir, e, t)
                 preds.append(lab)

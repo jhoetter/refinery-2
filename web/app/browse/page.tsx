@@ -19,6 +19,7 @@ export default function Browse() {
   const [selId, setSelId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
   const [sources, setSources] = useState<string[]>([]);
+  const [leftOpen, setLeftOpen] = useState(true);
 
   const loadMeta = useCallback(async () => {
     const p = await api<{ tasks: Record<string, TaskDef> }>("/api/project");
@@ -33,6 +34,11 @@ export default function Browse() {
   }, [task]);
 
   useEffect(() => { loadMeta().catch((e) => setMsg(String(e))); }, [loadMeta]);
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setSelId(null); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
   useEffect(() => { setActiveView(null); setBuilding(false); runAll().catch((e) => setMsg(String(e))); }, [runAll]);
 
   async function applyView(name: string | null, def?: Record<string, unknown>) {
@@ -68,11 +74,13 @@ export default function Browse() {
         actions={<>
           <select value={task} onChange={(e) => setTask(e.target.value)}>{Object.keys(tasks).map((k) => <option key={k}>{k}</option>)}</select>
           <button onClick={() => { setBuilding(!building); }}> {building ? "close builder" : "+ new view"}</button>
+          <button onClick={() => setLeftOpen(!leftOpen)} title="toggle views rail">{leftOpen ? "« views" : "views »"}</button>
         </>} />
       {msg && <p className="muted">{msg}</p>}
       {building && <ViewBuilder tasks={tasks} sources={sources} onApply={(d) => applyView(null, d)} onSave={saveView} />}
       <p className="muted">{activeView ? `view “${activeView}” · ` : ""}{total} records</p>
-      <div className="browse3">
+      <div className={`browse2${leftOpen ? "" : " closed"}`}>
+        {leftOpen ? (
         <div className="card detail-sticky" style={{ margin: 0 }}>
           <p className="side-title">views</p>
           <div className="btns" style={{ marginBottom: 8 }}>
@@ -87,27 +95,39 @@ export default function Browse() {
           ))}
           {views.length === 0 && <p className="muted">no saved views yet</p>}
         </div>
-        <table className="grid">
-          <thead><tr><th>id</th><th>text</th><th>consensus</th><th>golden</th></tr></thead>
-          <tbody>{rows.slice(0, 100).map((r) => (
-            <tr key={r.id} className="rowlink" onClick={() => setSelId(r.id)}>
-              <td className="mono muted">{r.id}</td>
-              <td className="txtcell">{r.text.slice(0, 220)}…</td>
-              <td>{r.agg ? <span className="pill acc">{shortLabel(r.agg.label)}</span> : <span className="muted">–</span>}</td>
-              <td>{r.golden ? <span className="pill gold">{shortLabel(r.golden)}</span> : <span className="pill low">–</span>}</td>
-            </tr>
-          ))}</tbody>
-        </table>
-        <div className="detail-sticky">
-          {!selId && <p className="muted">Select a row to inspect + label all tasks.</p>}
-          {selId && Object.keys(tasks).length > 0 && (
-            <div>
-              <h3 style={{ marginTop: 0 }} className="mono muted">{selId}</h3>
-              <AllTasks key={selId + activeView} id={selId} tasks={tasks} onSaved={() => setMsg(`saved golden for ${selId}`)} />
-            </div>
-          )}
+        ) : (
+        <div className="rail detail-sticky">
+          <button className="railbtn" onClick={() => setLeftOpen(true)} title="open views">views</button>
+        </div>
+        )}
+        <div>
+          <p className="muted">{activeView ? `view “${activeView}” · ` : ""}{total} records · click a row to label</p>
+          <table className="grid">
+            <thead><tr><th>id</th><th>text</th><th>consensus</th><th>conf</th><th>golden</th></tr></thead>
+            <tbody>{rows.slice(0, 100).map((r) => (
+              <tr key={r.id} className="rowlink" onClick={() => setSelId(r.id)}>
+                <td className="mono muted">{r.id}</td>
+                <td className="txtcell">{r.text.slice(0, 220)}…</td>
+                <td>{r.agg ? <span className="pill acc">{shortLabel(r.agg.label)}</span> : <span className="muted">–</span>}</td>
+                <td className="mono muted">{r.agg ? `${Math.round(100 * r.agg.confidence)}%` : "–"}</td>
+                <td>{r.golden ? <span className="pill gold">{shortLabel(r.golden)}</span> : <span className="pill low">–</span>}</td>
+              </tr>
+            ))}</tbody>
+          </table>
         </div>
       </div>
+      {selId && Object.keys(tasks).length > 0 && (
+        <>
+          <div className="scrim" onClick={() => setSelId(null)} />
+          <div className="drawer">
+            <div className="row" style={{ justifyContent: "space-between" }}>
+              <span className="mono muted">{selId}</span>
+              <button onClick={() => setSelId(null)} title="close (esc)">✕</button>
+            </div>
+            <AllTasks key={selId + activeView} id={selId} tasks={tasks} onSaved={() => setMsg(`saved golden for ${selId}`)} />
+          </div>
+        </>
+      )}
     </div>
   );
 }

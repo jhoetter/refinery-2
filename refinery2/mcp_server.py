@@ -20,7 +20,7 @@ PROJECT_DIR = Path(
     )
 )
 
-from .aggregate import aggregate_classification  # noqa: E402
+from .aggregate import aggregate_any  # noqa: E402
 from .config import load_project  # noqa: E402
 from .models import (  # noqa: E402
     api_predict,
@@ -81,23 +81,30 @@ def label_with_model(model: str, task: str = "topic", limit: int = 200) -> dict:
     _, _, tasks, store = _ctx()
     if task not in tasks:
         raise ValueError(f"unknown task {task}")
-    entry = get_model(PROJECT_DIR, model)
-    if entry["kind"] != "api":
-        raise ValueError("label_with_model needs an api model")
+    try:
+        entry = get_model(PROJECT_DIR, model)
+    except KeyError:
+        entry = {"name": model, "kind": "jev" if model == "jev" else "api", "params": {}}
+    if entry["kind"] not in ("api", "jev"):
+        raise ValueError("label_with_model needs an api or jev model")
+    from .models import jev_predict
+
     n, errors = 0, 0
     for r in store.list_records(limit=limit):
         try:
-            label, conf, _ = api_predict(entry, tasks[task], r["text"])
+            if entry["kind"] == "jev":
+                label, conf, _ = jev_predict(entry, tasks[task], r["text"])
+            else:
+                label, conf, _ = api_predict(entry, tasks[task], r["text"])
             store.add_source_label(r["id"], task, model, label, conf)
             n += 1
-        except RuntimeError:
+        except (RuntimeError, ValueError):
             errors += 1
-    if task == "topic":
-        for r in store.list_records(limit=limit):
-            votes = store.source_labels_for(r["id"], task)
-            if votes:
-                lab, conf = aggregate_classification(votes)
-                store.set_agg(r["id"], task, lab, conf)
+    for r in store.list_records(limit=limit):
+        votes = store.source_labels_for(r["id"], task)
+        if votes:
+            lab, conf = aggregate_any(votes)
+            store.set_agg(r["id"], task, lab, conf)
     store.commit()
     return {"ok": True, "labeled": n, "errors": errors}
 

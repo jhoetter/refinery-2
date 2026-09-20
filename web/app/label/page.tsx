@@ -11,6 +11,7 @@ export default function Label() {
   const [idx, setIdx] = useState(0);
   const [done, setDone] = useState(0);
   const [msg, setMsg] = useState("");
+  const [leftOpen, setLeftOpen] = useState(true);
 
   const refresh = useCallback(async () => {
     const p = await api<{ tasks: Record<string, TaskDef> }>("/api/project");
@@ -43,12 +44,14 @@ export default function Label() {
         actions={<>
           <label className="flt">queue <select value={task} onChange={(e) => setTask(e.target.value)}>{Object.keys(tasks).map((k) => <option key={k}>{k}</option>)}</select></label>
           <span className="muted">{queue.length ? `${idx + 1} / ${queue.length}` : "empty 🎉"} · {done} golden</span>
+          <button onClick={() => setLeftOpen(!leftOpen)} title="toggle queue rail">{leftOpen ? "« queue" : "queue »"}</button>
         </>} />
       <div className="progress" style={{ marginBottom: 14 }}><div style={{ width: `${queue.length ? Math.round(100 * idx / queue.length) : 100}%` }} /></div>
       {msg && <p className="muted">{msg}</p>}
       {!queue.length && <p className="muted">Nothing to review – teachers agree everywhere.</p>}
       {!!queue.length && cur && (
-        <div className="label3">
+        <div className={`label3${leftOpen ? "" : " noleft"}`}>
+          {leftOpen ? (
           <div className="card detail-sticky" style={{ margin: 0 }}>
             <p className="side-title">queue · {task}</p>
             <div className="queueside">
@@ -59,6 +62,11 @@ export default function Label() {
               ))}
             </div>
           </div>
+          ) : (
+          <div className="rail detail-sticky">
+            <button className="railbtn" onClick={() => setLeftOpen(true)} title="open queue">queue</button>
+          </div>
+          )}
           <div>
             <div className="row">
               <button onClick={() => setIdx((i) => Math.max(0, i - 1))}>← prev</button>
