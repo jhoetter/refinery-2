@@ -48,13 +48,25 @@ export default function Label() {
       {msg && <p className="muted">{msg}</p>}
       {!queue.length && <p className="muted">Nothing to review – teachers agree everywhere.</p>}
       {!!queue.length && cur && (
-        <div>
-          <div className="row">
-            <button onClick={() => setIdx((i) => Math.max(0, i - 1))}>← prev</button>
-            <button onClick={() => setIdx((i) => Math.min(queue.length - 1, i + 1))}>next →</button>
-            <span className="muted mono">{cur}</span>
+        <div className="label3">
+          <div className="card detail-sticky" style={{ margin: 0 }}>
+            <p className="side-title">queue · {task}</p>
+            <div className="queueside">
+              {queue.slice(0, 200).map((id, i) => (
+                <button key={id} className={`qitem${i === idx ? " on" : ""}`} onClick={() => setIdx(i)}>
+                  {i + 1}. {id}
+                </button>
+              ))}
+            </div>
           </div>
-          <AllTasks key={cur} id={cur} tasks={tasks} onSaved={() => setMsg(`saved ✓ (←/→ navigate, 1–9 choose)`)} />
+          <div>
+            <div className="row">
+              <button onClick={() => setIdx((i) => Math.max(0, i - 1))}>← prev</button>
+              <button onClick={() => setIdx((i) => Math.min(queue.length - 1, i + 1))}>next →</button>
+              <span className="muted mono">{cur}</span>
+            </div>
+            <AllTasks key={cur} id={cur} tasks={tasks} onSaved={() => setMsg(`saved ✓ (←/→ navigate, 1–9 choose)`)} />
+          </div>
         </div>
       )}
     </div>

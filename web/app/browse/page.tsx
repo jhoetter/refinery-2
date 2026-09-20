@@ -70,9 +70,11 @@ export default function Browse() {
           <button onClick={() => { setBuilding(!building); }}> {building ? "close builder" : "+ new view"}</button>
         </>} />
       {msg && <p className="muted">{msg}</p>}
-      <div style={{ display: "grid", gridTemplateColumns: "230px 1fr", gap: 16, alignItems: "start" }}>
-        <div className="card" style={{ margin: 0 }}>
-          <h4>views</h4>
+      {building && <ViewBuilder tasks={tasks} sources={sources} onApply={(d) => applyView(null, d)} onSave={saveView} />}
+      <p className="muted">{activeView ? `view “${activeView}” · ` : ""}{total} records</p>
+      <div className="browse3">
+        <div className="card detail-sticky" style={{ margin: 0 }}>
+          <p className="side-title">views</p>
           <div className="btns" style={{ marginBottom: 8 }}>
             <button onClick={() => { setActiveView(null); runAll(); }}>all records</button>
           </div>
@@ -85,31 +87,25 @@ export default function Browse() {
           ))}
           {views.length === 0 && <p className="muted">no saved views yet</p>}
         </div>
-        <div>
-          {building && <ViewBuilder tasks={tasks} sources={sources} onApply={(d) => applyView(null, d)} onSave={saveView} />}
-          <p className="muted">{activeView ? `view “${activeView}” · ` : ""}{total} records</p>
-          <div className="split">
-            <table className="grid">
-              <thead><tr><th>id</th><th>text</th><th>consensus</th><th>golden</th></tr></thead>
-              <tbody>{rows.slice(0, 100).map((r) => (
-                <tr key={r.id} className="rowlink" onClick={() => setSelId(r.id)}>
-                  <td className="mono muted">{r.id}</td>
-                  <td>{r.text.slice(0, 90)}…</td>
-                  <td>{r.agg ? <span className="pill acc">{shortLabel(r.agg.label)}</span> : <span className="muted">–</span>}</td>
-                  <td>{r.golden ? <span className="pill gold">{shortLabel(r.golden)}</span> : <span className="pill low">–</span>}</td>
-                </tr>
-              ))}</tbody>
-            </table>
+        <table className="grid">
+          <thead><tr><th>id</th><th>text</th><th>consensus</th><th>golden</th></tr></thead>
+          <tbody>{rows.slice(0, 100).map((r) => (
+            <tr key={r.id} className="rowlink" onClick={() => setSelId(r.id)}>
+              <td className="mono muted">{r.id}</td>
+              <td className="txtcell">{r.text.slice(0, 220)}…</td>
+              <td>{r.agg ? <span className="pill acc">{shortLabel(r.agg.label)}</span> : <span className="muted">–</span>}</td>
+              <td>{r.golden ? <span className="pill gold">{shortLabel(r.golden)}</span> : <span className="pill low">–</span>}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+        <div className="detail-sticky">
+          {!selId && <p className="muted">Select a row to inspect + label all tasks.</p>}
+          {selId && Object.keys(tasks).length > 0 && (
             <div>
-              {!selId && <p className="muted">Select a row to inspect + label all tasks.</p>}
-              {selId && Object.keys(tasks).length > 0 && (
-                <div>
-                  <h3 style={{ marginTop: 0 }} className="mono muted">{selId}</h3>
-                  <AllTasks key={selId + activeView} id={selId} tasks={tasks} onSaved={() => setMsg(`saved golden for ${selId}`)} />
-                </div>
-              )}
+              <h3 style={{ marginTop: 0 }} className="mono muted">{selId}</h3>
+              <AllTasks key={selId + activeView} id={selId} tasks={tasks} onSaved={() => setMsg(`saved golden for ${selId}`)} />
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
