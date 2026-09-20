@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { api, shortLabel, TaskDef } from "@/lib/api";
-import { LabelEditor } from "@/components/editor";
+import { AllTasks } from "@/components/task_sections";
 
 type Rec = { id: string; text: string; votes: { source: string; label: unknown; confidence: number }[]; agg: { label: unknown; confidence: number } | null; golden: unknown };
 
@@ -12,7 +12,7 @@ export default function Browse() {
   const [gold, setGold] = useState("all");
   const [labelF, setLabelF] = useState("all");
   const [rows, setRows] = useState<Rec[]>([]);
-  const [sel, setSel] = useState<{ id: string; text: string; votes: Rec["votes"]; agg: Rec["agg"]; golden: unknown } | null>(null);
+  const [selId, setSelId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
 
   const load = useCallback(async () => {
@@ -32,16 +32,8 @@ export default function Browse() {
     return true;
   });
 
-  async function open(id: string) {
-    const d = await api<{ record: { id: string; text: string }; votes: Rec["votes"]; agg: Rec["agg"]; golden: unknown }>(`/api/record/${id}?task=${task}`);
-    setSel({ id: d.record.id, text: d.record.text, votes: d.votes, agg: d.agg, golden: d.golden });
-  }
-  async function save(label: unknown) {
-    if (!sel) return;
-    await api("/api/labels", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ record_id: sel.id, task, label }) });
-    setMsg(`saved golden for ${sel.id}`);
-    await load();
-    open(sel.id).catch(() => {});
+  function open(id: string) {
+    setSelId(id);
   }
 
   return (
@@ -75,14 +67,11 @@ export default function Browse() {
           ))}</tbody>
         </table>
         <div>
-          {!sel && <p className="muted">Select a row to inspect + label.</p>}
-          {sel && tasks[task] && (
-            <div className="card">
-              <h3 style={{ marginTop: 0 }}>{sel.id}</h3>
-              <h4>label as golden</h4>
-              <LabelEditor key={task + sel.id} task={tasks[task]} text={sel.text} golden={sel.golden} onSave={save} />
-              <p>{sel.text}</p>
-              <table className="grid"><tbody>{sel.votes.map((v, i) => <tr key={i}><td className="mono">{v.source}</td><td>{shortLabel(v.label)}</td><td>{v.confidence}</td></tr>)}</tbody></table>
+          {!selId && <p className="muted">Select a row to inspect + label all tasks.</p>}
+          {selId && Object.keys(tasks).length > 0 && (
+            <div>
+              <h3 style={{ marginTop: 0 }} className="mono muted">{selId}</h3>
+              <AllTasks key={selId} id={selId} tasks={tasks} onSaved={() => { setMsg(`saved golden for ${selId}`); load(); }} />
             </div>
           )}
         </div>

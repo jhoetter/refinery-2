@@ -13,15 +13,19 @@ type Stats = {
 export default function Overview() {
   const [tasks, setTasks] = useState<string[]>(["topic"]);
   const [task, setTask] = useState("topic");
+  const [taskType, setTaskType] = useState("classification");
   const [s, setS] = useState<Stats | null>(null);
   const [queueN, setQueueN] = useState(0);
   const [err, setErr] = useState("");
 
   useEffect(() => {
-    api<{ tasks: Record<string, unknown> }>("/api/project")
-      .then((p) => { setTasks(Object.keys(p.tasks)); })
+    api<{ tasks: Record<string, { type: string }> }>("/api/project")
+      .then((p) => {
+        setTasks(Object.keys(p.tasks));
+        setTaskType(p.tasks[task]?.type ?? "classification");
+      })
       .catch((e) => setErr(String(e)));
-  }, []);
+  }, [task]);
   useEffect(() => {
     api<Stats>(`/api/stats?task=${task}`).then(setS).catch((e) => setErr(String(e)));
     api<{ n: number }>(`/api/queue?task=${task}`).then((q) => setQueueN(q.n)).catch(() => {});
@@ -44,7 +48,9 @@ export default function Overview() {
       <div className="grid2">
         <div className="card">
           <h4>label distribution · consensus ({s.n_records})</h4>
-          <DistBar dist={s.dist_agg} total={s.n_records} />
+          {taskType === "classification"
+            ? <DistBar dist={s.dist_agg} total={s.n_records} />
+            : <p>{Object.keys(s.dist_agg).length} distinct {taskType} values across {s.n_records} records with consensus – inspect them in browse.</p>}
         </div>
         <div className="card">
           <h4>label distribution · golden ({s.n_golden})</h4>

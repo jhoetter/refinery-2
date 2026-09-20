@@ -24,8 +24,15 @@ header.top nav a.on{background:var(--accent-bg);color:var(--accent)}
 main{padding:24px 28px 70px;max-width:1240px;margin:0 auto}
 .sub{color:var(--ink-2);font-size:12px;margin:1px 0 0}
 button,select,input,textarea{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-s);padding:7px 12px}
-button{cursor:pointer;font-weight:500;box-shadow:var(--shadow)}
-button:hover{background:var(--surface-2)}
+button{cursor:pointer;font-weight:500;box-shadow:var(--shadow);transition:transform 160ms cubic-bezier(0.23,1,0.32,1),background-color 160ms ease-out,border-color 160ms ease-out}
+@media (hover:hover) and (pointer:fine){button:hover{background:var(--surface-2)}}
+button:active{transform:scale(0.97)}
+.rec{transition:border-color 160ms ease-out,box-shadow 160ms ease-out}
+.choice{transition:border-color 160ms ease-out,background-color 160ms ease-out}
+.tok{transition:background-color 120ms ease-out}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:0.01ms!important;animation-duration:0.01ms!important}
+}
 button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 button.primary:hover{background:var(--accent-dark)}
 button b{font-family:var(--mono);font-weight:600;opacity:.6;margin-right:5px;font-size:11px;background:rgba(127,127,127,.15);border-radius:4px;padding:1px 5px}

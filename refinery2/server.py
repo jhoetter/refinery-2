@@ -11,11 +11,7 @@ from pydantic import BaseModel
 
 import os
 
-from .aggregate import (
-    aggregate_classification,
-    disagreement_queue,
-    source_quality,
-)
+from .aggregate import aggregate_any, disagreement_queue, source_quality
 from .config import apply_slices, load_project
 from .distill import evaluate, evaluate_slices, train_classifier
 from .sources import run_sources_for_record
@@ -114,7 +110,9 @@ class RunIn(BaseModel):
 
 @app.post("/api/run-sources")
 def run_sources(body: RunIn):
-    _, _, _, store = _ctx()
+    from .aggregate import aggregate_any
+
+    _, _, tasks, store = _ctx()
     recs = store.list_records(limit=body.limit)
     n = 0
     for r in recs:
@@ -122,12 +120,13 @@ def run_sources(body: RunIn):
         for task, sources in out.items():
             for source, v in sources.items():
                 store.add_source_label(r["id"], task, source, v["label"], v["confidence"])
-    # re-aggregate classification task
+    # re-aggregate every task that exists in the project
     for r in recs:
-        votes = store.source_labels_for(r["id"], "topic")
-        if votes:
-            label, conf = aggregate_classification(votes)
-            store.set_agg(r["id"], "topic", label, conf)
+        for task in tasks:
+            votes = store.source_labels_for(r["id"], task)
+            if votes:
+                label, conf = aggregate_any(votes)
+                store.set_agg(r["id"], task, label, conf)
     store.commit()
     return {"ok": True, "n_records": len(recs)}
 

@@ -41,6 +41,18 @@ def source_quality(source_labels: list[dict], golden: dict[str, object]) -> dict
     return stats
 
 
+def aggregate_any(votes: list[dict]) -> tuple[object, float]:
+    """Consensus for any task type: classification → weighted vote,
+    spans/extraction → highest-confidence source."""
+    if not votes:
+        return None, 0.0
+    first = votes[0]["label"]
+    if isinstance(first, str):
+        return aggregate_classification(votes)
+    best = max(votes, key=lambda v: float(v.get("confidence", 1.0)))
+    return best["label"], round(float(best.get("confidence", 1.0)), 3)
+
+
 def disagreement_queue(
     record_ids: list[str],
     get_votes,

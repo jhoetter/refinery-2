@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { TaskDef } from "@/lib/api";
 
 /** Label-Studio-style editors: choices with hotkeys, span tagging with region list, extraction form. */
@@ -9,18 +9,7 @@ export function LabelEditor({ task, text, golden, onSave }: {
   const [sel, setSel] = useState<number[]>([]);
   const [ent, setEnt] = useState(task.entities?.[0] ?? "");
   const [fields, setFields] = useState<Record<string, string>>((golden as Record<string, string>) ?? {});
-
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => {
-      if (task.type !== "classification") return;
-      const el = document.activeElement;
-      if (el && /INPUT|TEXTAREA|SELECT/.test(el.tagName)) return;
-      const i = parseInt(e.key, 10);
-      if (i >= 1 && task.labels && i <= task.labels.length) onSave(task.labels[i - 1]);
-    };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [task, onSave]);
+  // NOTE: digit hotkeys are handled once in AllTasks (first classification task).
 
   if (task.type === "classification")
     return (

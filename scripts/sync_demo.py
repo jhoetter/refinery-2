@@ -10,11 +10,28 @@ PROJECT = Path(__file__).resolve().parent.parent / "projects" / "demo_agnews"
 
 
 def sync(scale_golden: int = 60) -> None:
-    from refinery2.sources import mock_llm_topic
+    from refinery2.aggregate import aggregate_any
+    from refinery2.config import load_project
+    from refinery2.sources import mock_llm_topic, run_sources_for_record
+    from refinery2.tasks import load_tasks
 
+    cfg, _ = load_project(PROJECT)
+    tasks = load_tasks(PROJECT / cfg.tasks_dir)
     store = Store(PROJECT / "data" / "store.db")
     recs = [json.loads(l) for l in (PROJECT / "data" / "records.jsonl").open()]
     store.upsert_records(recs)
+    # label every record with every built-in source, aggregate every project task
+    for r in recs:
+        for task, sources in run_sources_for_record(r["text"]).items():
+            for source, v in sources.items():
+                store.add_source_label(r["id"], task, source, v["label"], v["confidence"])
+    for r in recs:
+        for task in tasks:
+            votes = store.source_labels_for(r["id"], task)
+            if votes:
+                label, conf = aggregate_any(votes)
+                store.set_agg(r["id"], task, label, conf)
+    store.commit()
     # seed golden: first `scale_golden` records with REAL ground truth.
     # AG News rows carry the true hf_label (0=World, 1=Sports, 2=Business,
     # 3=Sci/Tech) — that is the "careful human". Users overwrite/extend
